@@ -6,7 +6,6 @@
   display: block;
   width: 20rem;
   max-width: 100%;
-  border-radius: 25px;
 }
 
 form input {
@@ -30,7 +29,6 @@ form button {
   background: #197e85;
   color: white;
   cursor: pointer;
-  border-radius: 50px;
 }
 
 form button:hover,
@@ -42,7 +40,6 @@ form button:active {
 form input {
   border: 1px solid #197e85;
   height: 1.5rem;
-  border-radius: 50px;
 }
 
 form button:disabled {

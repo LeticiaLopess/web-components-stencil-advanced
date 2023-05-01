@@ -36,7 +36,7 @@ export class StockFinder {
       <button type="submit">Find</button>
     </form>,
     <ul>
-      {this.searchResults.map(result => <li>{result.name}</li>)} 
+      {this.searchResults.map(result => <li><strong>{result.symbol}</strong> - {result.name}</li>)} 
     </ul>
     // map percorre o array e retorna um outro array com a mesma quantidade de elementos
   ];
