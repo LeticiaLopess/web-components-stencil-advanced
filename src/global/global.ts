@@ -1,0 +1,1 @@
+export const AV_API_KEY = '837RP8LN03ZSP5EX'; // AV - ALPHA VANTAGE
