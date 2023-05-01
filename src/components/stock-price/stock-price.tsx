@@ -1,4 +1,4 @@
-import { Component, h, State, Element } from "@stencil/core";
+import { Component, h, State, Element, Prop } from "@stencil/core";
 import { AV_API_KEY } from '../../global/global'
 
 @Component({
@@ -10,11 +10,13 @@ import { AV_API_KEY } from '../../global/global'
 export class StockPrice {
   stockInput: HTMLInputElement;
 
-  @State() fetchedPrice: number; // toda vez que eu mudar o estado o Stencil vai automaticamente recarregar o render e atualizar
+  @State() fetchedPrice: number; 
   @State() stockUserInput: string;
   @State() stockInputValid = false;
+  @State() error: string;
+  @Prop() stockSymbol: string; // será acessada de fora
 
-  @Element() el: HTMLElement; // referencia o próprio web componente | usamos HTMLElement porque é baseado nele
+  @Element() el: HTMLElement; 
   
   onUserInput(event: Event) {
     this.stockUserInput = (event.target as HTMLInputElement).value;
@@ -25,43 +27,61 @@ export class StockPrice {
     }
   }
 
-  onFetchStockPrice(event: Event) { // acionado sempre que o formulário é enviado
-    // this.querySelector() - teremos um erro pois estariamos nos referindo à classe e a classe não possui um método de query selector como temos no Vanilla JS
-    // const stockSymbol = (this.el.shadowRoot.querySelector('#stock-symbol') as HTMLInputElement).value // acessando o input -> Somente colocar .nodeValue ou envolver com o parênteses e colocar as HTMLInputElement para o stencil saber que é um elemento HTML, pois ele não reconhece // use shadowRoot, lembre-se que esse componente está com a shadowDom ativa
+  onFetchStockPrice(event: Event) { 
     const stockSymbol = this.stockInput.value;
-    event.preventDefault(); // enviaria o formulário automaticamente como uma requisição para o servidor que esse app estará rodando, mas eu não quero isso. Quero enviar uma requisição para um servidor diferente mas eu não quero enviar uma requisição automatizada quando esse formulário é enviado para o mesmo servidor que o app está rodando porque não colherá nenhum resultado
+    event.preventDefault(); 
     console.log('Submitted!')
+    this.fetchStockPrice(stockSymbol);
+  }
 
+  componentDidLoad() { // Called once just after the component is fully loaded and the first render() occurs.
+    if (this.stockSymbol) {
+      this.fetchStockPrice(this.stockSymbol)
+    }
+  }
+
+  fetchStockPrice(stockSymbol: string) { // entrará o valor no input
     fetch(`https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${stockSymbol}&apikey=${AV_API_KEY}`) // troque o demo pela Key e o IBM pela variável stockSymbol
     .then(res => {
-      return res.json(); // resposta como json
+      if (res.status !== 200) {
+        throw new Error('Invalid!')
+      }
+      return res.json();
     })
     .then(parsedRes => { // resposta analisada disponível
-      //console.log(parsedRes);
-      this.fetchedPrice = +parsedRes['Global Quote']['05. price'] // acessando somente a variável 'price' que está dentro do objeto Global Quote
-    }) 
-    .catch(erro => { // A catch will catch any errors that occur    
-      console.log(erro)
 
+      if (!parsedRes['Global Quote']['05. price']) {
+        throw new Error('Invalid Symbol!')
+      }
+      this.error = null; // to clear it
+      this.fetchedPrice = +parsedRes['Global Quote']['05. price'] 
+    }) 
+    .catch(erro => {    
+      this.error = erro.message; // the erro object has a message property
     }) 
   }
 
-  render() { // div -> output
-    // we want to listen to this form submit and fetch that input value here
-    // that will be the first step because that will allow us to, as a next step, fetch our price
-    // value é um atributo de HTMLElements
+  render() { 
+    let dataContent = <p>Please, enter a symbol!</p>;
+    if (this.error) {
+      dataContent = <p>{this.error}</p>
+    }
+    if (this.fetchedPrice) {
+      dataContent = <p>Price: ${this.fetchedPrice}</p>
+    }
+
     return [
       <form onSubmit={this.onFetchStockPrice.bind(this)}> 
         <input 
         id="stock-symbol" 
         ref={el => this.stockInput = el} 
         value={this.stockUserInput}
-        onInput={this.onUserInput.bind(this)} // para que o this dentro da função onUserInput se refira à classe e não para o elemento input
+        onInput={this.onUserInput.bind(this)}
         />
         <button type="submit" disabled={!this.stockInputValid}>Fetch</button>
       </form>,
       <div> 
-        <p>Price: ${this.fetchedPrice}</p>
+        {dataContent}
       </div>
     ]
   }
