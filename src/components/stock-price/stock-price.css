@@ -44,3 +44,9 @@ form input {
   height: 1.5rem;
   border-radius: 50px;
 }
+
+form button:disabled {
+  background-color: #ccc;
+  border-color: #ccc;
+  cursor: not-allowed;
+}

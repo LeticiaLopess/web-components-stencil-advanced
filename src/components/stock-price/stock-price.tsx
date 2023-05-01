@@ -11,8 +11,20 @@ export class StockPrice {
   stockInput: HTMLInputElement;
 
   @State() fetchedPrice: number; // toda vez que eu mudar o estado o Stencil vai automaticamente recarregar o render e atualizar
+  @State() stockUserInput: string;
+  @State() stockInputValid = false;
+
   @Element() el: HTMLElement; // referencia o próprio web componente | usamos HTMLElement porque é baseado nele
   
+  onUserInput(event: Event) {
+    this.stockUserInput = (event.target as HTMLInputElement).value;
+    if (this.stockUserInput.trim() !== '') {
+      this.stockInputValid = true;
+    } else {
+      this.stockInputValid = false;
+    }
+  }
+
   onFetchStockPrice(event: Event) { // acionado sempre que o formulário é enviado
     // this.querySelector() - teremos um erro pois estariamos nos referindo à classe e a classe não possui um método de query selector como temos no Vanilla JS
     // const stockSymbol = (this.el.shadowRoot.querySelector('#stock-symbol') as HTMLInputElement).value // acessando o input -> Somente colocar .nodeValue ou envolver com o parênteses e colocar as HTMLInputElement para o stencil saber que é um elemento HTML, pois ele não reconhece // use shadowRoot, lembre-se que esse componente está com a shadowDom ativa
@@ -37,11 +49,16 @@ export class StockPrice {
   render() { // div -> output
     // we want to listen to this form submit and fetch that input value here
     // that will be the first step because that will allow us to, as a next step, fetch our price
-
+    // value é um atributo de HTMLElements
     return [
       <form onSubmit={this.onFetchStockPrice.bind(this)}> 
-        <input id="stock-symbol" ref={el => this.stockInput = el}/>
-        <button type="submit">Fetch</button>
+        <input 
+        id="stock-symbol" 
+        ref={el => this.stockInput = el} 
+        value={this.stockUserInput}
+        onInput={this.onUserInput.bind(this)} // para que o this dentro da função onUserInput se refira à classe e não para o elemento input
+        />
+        <button type="submit" disabled={!this.stockInputValid}>Fetch</button>
       </form>,
       <div> 
         <p>Price: ${this.fetchedPrice}</p>
