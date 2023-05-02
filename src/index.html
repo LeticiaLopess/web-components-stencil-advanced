@@ -11,5 +11,12 @@
   <body>
     <wj-stock-price stock-symbol="MSFT"></wj-stock-price>
     <wj-stock-finder></wj-stock-finder>
+
+    <script>
+      const stockFinderEl = document.querySelector('wj-stock-finder');
+      stockFinderEl.addEventListener('wjSymbolSelected', event => {
+        console.log(event);
+      })
+    </script>
   </body>
 </html>
