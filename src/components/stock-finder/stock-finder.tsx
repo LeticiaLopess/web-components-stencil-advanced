@@ -11,11 +11,13 @@ export class StockFinder {
   stockNameInput: HTMLInputElement;
 
   @State() searchResults: {symbol: string, name: string}[] = []; // os resultados de pesquisa é uma lista de objetos onde cada objeto tem um símbolo o qual é uma string e um nome o qual é uma string também
+  @State() loading = false;
 
   @Event({bubbles: true, composed: true}) wjSymbolSelected: EventEmitter<string>; // EventEmitter é um tipo genérico que significa que podemos passar informações extras com esse tipo de definição onde diremos ao typescript qual tipo de dado vai eventualmente ser emitido com esse EventEmitter e fazemos isso com o <>
 
   onFindStocks(event: Event) {
     event.preventDefault();
+    this.loading = true;
     const stockName = this.stockNameInput.value;
     fetch(`https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=${stockName}&apikey=${AV_API_KEY}`)
     .then(res => res.json())
@@ -23,8 +25,11 @@ export class StockFinder {
       this.searchResults = parsedRes['bestMatches'].map(match => { // os resultados estão dentro do objeto 'bestMatches', então sempre dê um console.log para se certificar
         return {name: match['2. name'], symbol: match['1. symbol']}
       })
+      console.log(this.searchResults);
+      this.loading = false;
     }).catch(err => {
       console.log(err)
+      this.loading = false;
     })
   }
 
@@ -33,6 +38,15 @@ export class StockFinder {
   }
 
   render() {
+    let content = <ul>
+      {this.searchResults.map(result => (
+      <li onClick={this.onSelectSymbol.bind(this, result.symbol)}>
+        <strong>{result.symbol}</strong> - {result.name}
+        </li>))} 
+    </ul>; // não feche o código acima com ';', se não vai aparecer lá na tela
+    if (this.loading) {
+      content = <wj-spinner></wj-spinner>;
+    }
     return [
     <form onSubmit={this.onFindStocks.bind(this)}>
       <input
@@ -41,9 +55,7 @@ export class StockFinder {
       />
       <button type="submit">Find</button>
     </form>,
-    <ul>
-      {this.searchResults.map(result => <li onClick={this.onSelectSymbol.bind(this, result.symbol)}><strong>{result.symbol}</strong> - {result.name}</li>)} 
-    </ul>
+    content
     // map percorre o array e retorna um outro array com a mesma quantidade de elementos
   ];
 

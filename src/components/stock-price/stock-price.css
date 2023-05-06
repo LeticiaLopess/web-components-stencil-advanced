@@ -8,6 +8,10 @@
   max-width: 100%;
 }
 
+:host(.error) { /* quando o host (o componente) estiver com a classe 'error' */
+  border-color: red;
+}
+
 form input {
   font: inherit; /* herança */
   color: #197e85;
